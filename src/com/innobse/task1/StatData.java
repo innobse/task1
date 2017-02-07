@@ -13,7 +13,7 @@ import java.util.Set;
  */
 
 public class StatData {
-    static final HashMap<String, Integer> statistic = new HashMap<>();
+    private static final HashMap<String, Integer> statistic = new HashMap<>(200);
 
 
     /**
@@ -22,7 +22,7 @@ public class StatData {
      * @param word Word in text file
      */
 
-    static void update(String word){    //Думаю, это избавит нас от использования ConcurrentHashMap?
+    static void update(String word){    //  Q: Как оптимизировать? ConcurrentHashMap<String, AtomicInteger> ?
         synchronized (statistic){
             statistic.put(word, (statistic.containsKey(word) ? statistic.get(word) + 1 : 1));
             Main.getCurrentDisplay().printStat();
@@ -33,7 +33,7 @@ public class StatData {
     /**
      * Get all map entries
      *
-     * @return {@code Set<Map.Entry<String, Integer>>} Set of map entries
+     * @return {@code Set&lt;Map.Entry&lt;String, Integer&gt;&gt;} Set of map entries
      */
 
     static Set<Map.Entry<String, Integer>> getEntries(){

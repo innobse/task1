@@ -1,9 +1,5 @@
 package com.innobse.task1;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-
 
 /**
  * Class for analize process
@@ -22,9 +18,10 @@ public class AnalizatorProcess extends Thread {
      * @param resource the path file
      */
 
-    public AnalizatorProcess(String resource){
+    AnalizatorProcess(String resource){
         this.resource = resource;
-        super.start();
+        setDaemon(true);            //  нет смысла в потоках, если главный уже вылетел с ошибкой
+        start();
     }
 
 
@@ -35,29 +32,8 @@ public class AnalizatorProcess extends Thread {
 
     @Override
     public void run(){
-        //setDaemon(true);
-        analize();
+        if (Parser.analize(resource) != 0) this.getThreadGroup().getParent().interrupt();
     }
 
 
-    /**
-     * Read file for words and update statistic
-     *
-     */
-
-    private void analize(){
-
-        try(BufferedReader br = new BufferedReader(new FileReader(resource))) {
-            String line;
-                while((line = br.readLine()) != null){
-                    for(String tempString : line.split("[^а-яА-Я\\-]")){
-                        if (!tempString.equals("")) StatData.update(tempString);        //TODO Это надо пофиксить
-                    }
-                }
-        } catch (IOException e) {
-            Main.getCurrentDisplay().printErr(e);
-        }
-        Main.getCurrentDisplay().end(resource);
-
-    }
 }

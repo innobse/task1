@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public class Display {
+    private volatile boolean canPrint = true;
 
 
     /**
@@ -18,6 +19,7 @@ public class Display {
      */
 
     void printStat(){
+        if (!canPrint) return;
         System.out.println("===================================================================");
         for(ConcurrentHashMap.Entry entry : StatData.getEntries()){
             System.out.println(entry.getKey() + "        " + entry.getValue());
@@ -26,13 +28,23 @@ public class Display {
     }
 
     /**
-     * Print error to console
+     * Print error message to console
      *
      * @param err Detected exception
      */
 
     void printErr(Exception err){
-        System.out.println("Error detected!" + err.getMessage() + "The result may be incorrect!");
+        System.out.println("Error detected! " + err.getMessage() + " The result may be incorrect!");
+    }
+
+    /**
+     * Print error message to console
+     *
+     * @param err Exception message
+     */
+
+    void printErr(String err){
+        System.out.println("Error detected! " + err + " The result may be incorrect!");
     }
 
     /**
@@ -42,7 +54,17 @@ public class Display {
      */
 
     void end(String res){
-        System.out.println("Все слова в фвйле: " + res + " посчитаны!");
+        System.out.println("Все слова в файле: " + res + " посчитаны!");
+    }
+
+
+    /**
+     * Stop all print
+     *
+     */
+
+    void stop(){
+        canPrint = false;
     }
 
 
