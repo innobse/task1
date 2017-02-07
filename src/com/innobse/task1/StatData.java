@@ -13,7 +13,7 @@ import java.util.Set;
  */
 
 public class StatData {
-    private static final HashMap<String, Integer> statistic = new HashMap<>(200);
+    private static final HashMap<String, Integer> statistic = new HashMap<>(128);       //  96 слов залезет без расширения
 
 
     /**
@@ -36,7 +36,7 @@ public class StatData {
      * @return {@code Set&lt;Map.Entry&lt;String, Integer&gt;&gt;} Set of map entries
      */
 
-    static Set<Map.Entry<String, Integer>> getEntries(){
+    public static Set<Map.Entry<String, Integer>> getEntries(){
         synchronized (statistic){
             return statistic.entrySet();
         }

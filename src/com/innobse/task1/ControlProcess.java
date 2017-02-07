@@ -19,8 +19,6 @@ public class ControlProcess extends Thread {
 
     @Override
     public void run(){
-        //String[] res = {"D:\\dev\\Projects\\inno\\testRes\\01.txt", "D:\\dev\\Projects\\inno\\testRes\\02.txt", "D:\\dev\\Projects\\inno\\testRes\\03.txt",
-        //"http://bse71.ru/README.txt"};
         Thread[] threads = new Thread[res.length];
         for(int i = 0; i < res.length; i++){
             threads[i] = new AnalizatorProcess(res[i]);
