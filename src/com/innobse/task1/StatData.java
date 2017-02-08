@@ -13,7 +13,7 @@ import java.util.Set;
  */
 
 public class StatData {
-    private static final HashMap<String, Integer> statistic = new HashMap<>(128);       //  96 слов залезет без расширения
+    private static final HashMap<String, Integer> statistic = new HashMap<>(100);       //  100 слов залезет без расширения (ЭТО НЕ КОЛ-ВО КОРЗИН!)
 
 
     /**
