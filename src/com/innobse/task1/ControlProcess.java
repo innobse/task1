@@ -6,11 +6,11 @@ package com.innobse.task1;
  * Start parsing processes and kill them if error detected
  *
  *
- * @author Yury Penkov, y.penkov@innopolis.ru
+ * @author Yury Penkov, y.penkov.stc@innopolis.ru
  */
 
 public class ControlProcess extends Thread {
-    String[] res;
+    private String[] res;
 
     ControlProcess(String[] res){
         this.res = res;
@@ -35,6 +35,8 @@ public class ControlProcess extends Thread {
         } catch (InterruptedException e) {
             Main.getCurrentDisplay().printErr("ControlThread already stopped.");
         }
+
+
     }
 
 }

@@ -6,10 +6,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Print helper class. Print information to some output stream
  *
  *
- * @author Yury Penkov, y.penkov@innopolis.ru
+ * @author Yury Penkov, y.penkov.stc@innopolis.ru
  */
 
-public class Display {
+class Display {
     private volatile boolean canPrint = true;
 
 

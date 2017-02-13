@@ -9,13 +9,14 @@ import java.util.regex.Pattern;
  * Class parser for analize text files. Open file and update information in StatData
  *
  *
- * @author Yury Penkov, y.penkov@innopolis.ru
+ * @author Yury Penkov, y.penkov.stc@innopolis.ru
  */
 
 public class Parser {
     private static Pattern invalidSymbols = Pattern.compile("[^0-9а-яА-ЯЁё\\.\\?\"\',:!;()\\-\\s]");
     private static Pattern word = Pattern.compile("^[А-Яа-яЁё]+\\-{0,1}[а-яё]*$");
     private static Pattern url = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]\\.txt");
+    private static volatile boolean run = true;
 
 
     /**
@@ -32,9 +33,11 @@ public class Parser {
                 fileReader = new InputStreamReader(resUrl.openStream());
             } catch (MalformedURLException e){
                 Main.getCurrentDisplay().printErr("Error! Can't generate URL for string: " + resource);
+                run = false;
                 return -1;
             } catch (IOException e){
                 Main.getCurrentDisplay().printErr("Error! Can't open stream for text file on server.");
+                run = false;
                 return -1;
             }
         } else {

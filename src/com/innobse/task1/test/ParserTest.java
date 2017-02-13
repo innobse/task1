@@ -1,24 +1,28 @@
 package com.innobse.task1.test;
 
-import static com.innobse.task1.Parser.analize;
+import com.innobse.task1.Parser;
 import com.innobse.task1.StatData;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class ParserTest {
+/**
+ * Created by bse71 on 13.02.2017.
+ */
+class ParserTest {
     private static String[] paths = {"testRes/01.txt", "testRes/02.txt", "testRes/03.txt"};
-    HashMap<String, Integer> expect = new HashMap<>();      //  начального значения как раз хватит
+    private HashMap<String, Integer> expect = new HashMap<>();      //  начального значения как раз хватит
 
-
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
+
+    }
+
+    private void initData(){
         expect.put("один", 1);
         expect.put("два", 2);
         expect.put("три", 3);
@@ -31,35 +35,46 @@ public class ParserTest {
         expect.put("медвед", 1);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
-        expect.clear();
+        StatData.eraseAll();
     }
 
     @Test
     public void testAnalize() throws Exception {
-
-
         //  Проверка на тестовом наборе файлов
+        initData();
         for(String str : paths){
-            analize(str);
+            Parser.analize(str);
         }
         Set<Map.Entry<String, Integer>> result = StatData.getEntries();
-        assertTrue(result.size() == expect.size());
+        assertTrue(expect.size() == result.size());
         for(Map.Entry<String, Integer> entry : result){
-            assertEquals(expect.get(entry.getKey()), entry.getValue());
+            assertEquals(expect.get(entry.getKey()), entry.getValue(), "Несовпадение по ключу \'" + entry.getKey() + "\'");
         }
+    }
 
-        //  Проверка на возврат при нормальных данных
-        assertTrue(analize("testRes/03.txt") == 0);
-        assertTrue(analize("testRes/01.txt") == 0);
+    @Test
+    public void testAnalizeReturnValues() throws Exception {
 
         //  Проверка на возврат при некорректных символах в файлах
-        assertTrue(analize("http://joomla.ru/README.txt") == -1);
-        assertTrue(analize("testRes/04.txt") == -1);
+        assertTrue(Parser.analize("http://joomla.ru/README.txt") == -1);
+        assertTrue(StatData.getEntries().size() == 0);
+        assertTrue(Parser.analize("testRes/04.txt") == -1);
+        assertTrue(StatData.getEntries().size() == 0);
 
         //  Проверка на возврат и нормальное завершение при несуществующих файлах
-        assertTrue(analize("http://joomla.ru/README2.txt") == -1);
-        assertTrue(analize("testRes/not02.txt") == -1);
+        assertTrue(Parser.analize("http://joomla.ru/README2.txt") == -1);
+        assertTrue(StatData.getEntries().size() == 0);
+        assertTrue(Parser.analize("testRes/not02.txt") == -1);
+        assertTrue(StatData.getEntries().size() == 0);
+
+        //  Проверка на возврат при нормальных данных
+        int semiResult = 0;
+        assertTrue(Parser.analize("testRes/03.txt") == 0);
+        assertTrue((semiResult = StatData.getEntries().size()) > 0);
+        assertTrue(Parser.analize("testRes/01.txt") == 0);
+        assertTrue(StatData.getEntries().size() > semiResult);
     }
+
 }

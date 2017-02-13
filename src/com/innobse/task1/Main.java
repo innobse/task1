@@ -15,7 +15,7 @@ package com.innobse.task1;
  * API покрыто модульными тестами
  *
  *
- * @author Yury Penkov, y.penkov@innopolis.ru
+ * @author Yury Penkov, y.penkov.stc@innopolis.ru
  */
 
 public class Main {
@@ -39,7 +39,7 @@ public class Main {
      * @return {@code Display} for print statistics and errors
      */
 
-    public static Display getCurrentDisplay(){
+    static Display getCurrentDisplay(){
         return currentDisplay;
     }
 }

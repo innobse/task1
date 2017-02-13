@@ -1,15 +1,18 @@
 package com.innobse.task1;
 
 
+import java.util.ArrayList;
+
 /**
  * Class for analize process
  *
  *
- * @author Yury Penkov, y.penkov@innopolis.ru
+ * @author Yury Penkov, y.penkov.stc@innopolis.ru
  */
 
 public class AnalizatorProcess extends Thread {
     private String resource;
+    private static volatile boolean isCancel = false;
 
 
     /**
@@ -22,6 +25,26 @@ public class AnalizatorProcess extends Thread {
         this.resource = resource;
         setDaemon(true);            //  нет смысла в потоках, если главный уже вылетел с ошибкой
         start();
+    }
+
+
+    /**
+     * Cancel all thread
+     *
+     */
+
+    public void cancelAll(){
+        isCancel = true;
+    }
+
+
+    /**
+     * Did thread cancel?
+     *
+     */
+
+    public boolean isCancelled(){
+        return isCancel;
     }
 
 

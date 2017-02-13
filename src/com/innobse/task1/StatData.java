@@ -9,11 +9,12 @@ import java.util.Set;
  * Class for collect and modified statistic
  *
  *
- * @author Yury Penkov, y.penkov@innopolis.ru
+ * @author Yury Penkov, y.penkov.stc@innopolis.ru
  */
 
 public class StatData {
-    private static final HashMap<String, Integer> statistic = new HashMap<>(100);       //  100 слов залезет без расширения (ЭТО НЕ КОЛ-ВО КОРЗИН!)
+    private static final int INITIAL_SIZE = 100;
+    private static final HashMap<String, Integer> statistic = new HashMap<>(INITIAL_SIZE);
 
 
     /**
@@ -39,6 +40,18 @@ public class StatData {
     public static Set<Map.Entry<String, Integer>> getEntries(){
         synchronized (statistic){
             return statistic.entrySet();
+        }
+    }
+
+
+    /**
+     * Clear data
+     *
+     */
+
+    public static void eraseAll(){
+        synchronized (statistic){
+            statistic.clear();
         }
     }
 }
