@@ -1,6 +1,8 @@
 package com.innobse.task1;
 
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Main class for task1
  *
@@ -20,6 +22,7 @@ package com.innobse.task1;
 
 public class Main {
     private static Display currentDisplay = new Display();
+    static volatile boolean isCancel = false;
 
 
     /**
@@ -29,7 +32,13 @@ public class Main {
      */
 
     public static void main(String[] args) {
-        new ControlProcess(args);
+//        Thread[] threads = new Thread[args.length];
+//        for(int i = 0; i < args.length; i++){
+//            threads[i] = new AnalizatorProcess(args[i]);
+//        }
+        for (String arg : args) {
+            new AnalizatorProcess(arg);
+        }
     }
 
 

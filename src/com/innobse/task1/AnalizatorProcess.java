@@ -12,7 +12,6 @@ import java.util.ArrayList;
 
 public class AnalizatorProcess extends Thread {
     private String resource;
-    private static volatile boolean isCancel = false;
 
 
     /**
@@ -23,28 +22,7 @@ public class AnalizatorProcess extends Thread {
 
     AnalizatorProcess(String resource){
         this.resource = resource;
-        setDaemon(true);            //  нет смысла в потоках, если главный уже вылетел с ошибкой
         start();
-    }
-
-
-    /**
-     * Cancel all thread
-     *
-     */
-
-    public void cancelAll(){
-        isCancel = true;
-    }
-
-
-    /**
-     * Did thread cancel?
-     *
-     */
-
-    public boolean isCancelled(){
-        return isCancel;
     }
 
 
@@ -55,7 +33,11 @@ public class AnalizatorProcess extends Thread {
 
     @Override
     public void run(){
-        if (Parser.analize(resource) != 0) this.getThreadGroup().getParent().interrupt();
+        if (Parser.analize(resource) != 0){
+            Main.isCancel = true;
+            Main.getCurrentDisplay().stop();
+            Main.getCurrentDisplay().printErr("One file have incorrect symbols! The program will be closed.");
+        }
     }
 
 

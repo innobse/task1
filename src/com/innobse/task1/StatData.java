@@ -23,7 +23,7 @@ public class StatData {
      * @param word Word in text file
      */
 
-    static void update(String word){    //  Q: Как оптимизировать? ConcurrentHashMap<String, AtomicInteger> ?
+    static void update(String word){    //  Q: ConcurrentHashMap<String, Integer> ?
         synchronized (statistic){
             statistic.put(word, (statistic.containsKey(word) ? statistic.get(word) + 1 : 1));
             Main.getCurrentDisplay().printStat();
@@ -52,6 +52,18 @@ public class StatData {
     public static void eraseAll(){
         synchronized (statistic){
             statistic.clear();
+        }
+    }
+
+
+    /**
+     * Return count of unique words
+     *
+     */
+
+    public static int size(){
+        synchronized (statistic){
+            return statistic.size();
         }
     }
 }
