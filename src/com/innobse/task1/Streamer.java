@@ -1,6 +1,7 @@
 package com.innobse.task1;
 
 import com.innobse.task1.Exceptions.GetStreamException;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
  */
 
 public class Streamer {
+    static final Logger logger = Logger.getLogger(Parser.class);
     private static Pattern url = Pattern.compile(
             "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]\\.txt");
 
@@ -36,14 +38,17 @@ public class Streamer {
                 resUrl = new URL(resource);
                 result = new InputStreamReader(resUrl.openStream());
             } catch (MalformedURLException e){
+                logger.error("Ошибка формирования URL", e);
                 throw new GetStreamException("Error! Can't generate URL for string: " + resource);
             } catch (IOException e){
+                logger.error("Ошибка при попытке открыть поток", e);
                 throw new GetStreamException("Error! Can't open stream for text file on server.");
             }
         } else {
             try{
                 result = new FileReader(resource);
             } catch (FileNotFoundException e) {
+                logger.error("Ошибка при открытии файла", e);
                 throw new GetStreamException("Error! Can't open file. File not found!");
             }
         }
