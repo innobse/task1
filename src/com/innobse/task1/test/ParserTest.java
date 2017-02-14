@@ -1,9 +1,9 @@
 package com.innobse.task1.test;
 
+import static com.innobse.task1.test.ConstTest.*;
 import com.innobse.task1.Parser;
 import com.innobse.task1.StatData;
 import org.junit.jupiter.api.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -58,23 +58,26 @@ class ParserTest {
     public void testAnalizeReturnValues() throws Exception {
 
         //  Проверка на возврат при некорректных символах в файлах
-        assertTrue(Parser.analize("http://joomla.ru/README.txt") == -1);
-        assertTrue(StatData.getEntries().size() == 0);
-        assertTrue(Parser.analize("testRes/04.txt") == -1);
-        assertTrue(StatData.getEntries().size() == 0);
+        for (String str : badFiles) {
+            assertTrue(Parser.analize(str) == -1);
+            assertTrue(StatData.size() == 0);
+        }
 
         //  Проверка на возврат и нормальное завершение при несуществующих файлах
-        assertTrue(Parser.analize("http://joomla.ru/README2.txt") == -1);
-        assertTrue(StatData.getEntries().size() == 0);
-        assertTrue(Parser.analize("testRes/not02.txt") == -1);
-        assertTrue(StatData.getEntries().size() == 0);
+        for (String str : unknownFiles) {
+            assertTrue(Parser.analize(str) == -1);
+            assertTrue(StatData.size() == 0);
+        }
 
         //  Проверка на возврат при нормальных данных
+
         int semiResult = 0;
-        assertTrue(Parser.analize("testRes/03.txt") == 0);
-        assertTrue((semiResult = StatData.getEntries().size()) > 0);
-        assertTrue(Parser.analize("testRes/01.txt") == 0);
-        assertTrue(StatData.getEntries().size() > semiResult);
+        int tmp;
+        for (String str : goodFiles) {
+            assertTrue(Parser.analize(str) == 0);
+            tmp = semiResult;
+            assertTrue((semiResult = StatData.size()) > tmp);
+        }
     }
 
 }
