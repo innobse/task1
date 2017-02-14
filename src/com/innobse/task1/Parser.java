@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
  */
 
 public class Parser {
+    static org.apache.log4j.Logger log = Logger.getLogger(log4jExample.class.getName());
     private static Pattern invalidSymbols = Pattern.compile("[^0-9а-яА-ЯЁё\\.\\?\"\',:!;()\\-\\s]");
     private static Pattern word = Pattern.compile("^[А-Яа-яЁё]+\\-{0,1}[а-яё]*$");
     private static volatile boolean run = true;
