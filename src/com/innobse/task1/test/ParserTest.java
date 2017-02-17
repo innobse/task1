@@ -1,6 +1,7 @@
 package com.innobse.task1.test;
 
 import static com.innobse.task1.test.ConstTest.*;
+import static com.innobse.task1.Main.data;
 import com.innobse.task1.Parser;
 import com.innobse.task1.StatData;
 import org.junit.jupiter.api.*;
@@ -37,7 +38,7 @@ class ParserTest {
 
     @AfterEach
     public void tearDown() throws Exception {
-        StatData.eraseAll();
+        data.eraseAll();
     }
 
     @Test
@@ -47,7 +48,7 @@ class ParserTest {
         for(String str : paths){
             Parser.analize(str);
         }
-        Set<Map.Entry<String, Integer>> result = StatData.getEntries();
+        Set<Map.Entry<String, Integer>> result = data.getEntries();
         assertTrue(expect.size() == result.size());
         for(Map.Entry<String, Integer> entry : result){
             assertEquals(expect.get(entry.getKey()), entry.getValue(), "Несовпадение по ключу \'" + entry.getKey() + "\'");
@@ -60,13 +61,13 @@ class ParserTest {
         //  Проверка на возврат при некорректных символах в файлах
         for (String str : badFiles) {
             assertTrue(Parser.analize(str) == -1);
-            assertTrue(StatData.size() == 0);
+            assertTrue(data.size() == 0);
         }
 
         //  Проверка на возврат и нормальное завершение при несуществующих файлах
         for (String str : unknownFiles) {
             assertTrue(Parser.analize(str) == -1);
-            assertTrue(StatData.size() == 0);
+            assertTrue(data.size() == 0);
         }
 
         //  Проверка на возврат при нормальных данных
@@ -76,7 +77,7 @@ class ParserTest {
         for (String str : goodFiles) {
             assertTrue(Parser.analize(str) == 0);
             tmp = semiResult;
-            assertTrue((semiResult = StatData.size()) > tmp);
+            assertTrue((semiResult = data.size()) > tmp);
         }
     }
 

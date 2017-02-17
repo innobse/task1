@@ -3,6 +3,7 @@ package com.innobse.task1;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -12,9 +13,10 @@ import java.util.Set;
  * @author Yury Penkov, y.penkov.stc@innopolis.ru
  */
 
-public class StatData implements IStatDate {
+public class StatData2 implements IStatDate {
     private static final int INITIAL_SIZE = 100;
     private static final HashMap<String, Integer> statistic = new HashMap<>(INITIAL_SIZE);
+    private static final ReentrantLock rlock = new ReentrantLock();
 
 
     /**
@@ -24,9 +26,12 @@ public class StatData implements IStatDate {
      */
 
     public void update(String word){    //  Q: ConcurrentHashMap<String, Integer> ?
-        synchronized (statistic){
+        try {
+            rlock.lock();
             statistic.put(word, (statistic.containsKey(word) ? statistic.get(word) + 1 : 1));
             Main.getCurrentDisplay().printStat();
+        } finally {
+            rlock.unlock();
         }
     }
 
@@ -38,9 +43,14 @@ public class StatData implements IStatDate {
      */
 
     public Set<Map.Entry<String, Integer>> getEntries(){
-        synchronized (statistic){
-            return statistic.entrySet();
+        Set<Map.Entry<String, Integer>> result = null;
+        try {
+            rlock.lock();
+            result = statistic.entrySet();
+        } finally {
+            rlock.unlock();
         }
+        return result;
     }
 
 
@@ -50,8 +60,11 @@ public class StatData implements IStatDate {
      */
 
     public void eraseAll(){
-        synchronized (statistic){
+        try {
+            rlock.lock();
             statistic.clear();
+        } finally {
+            rlock.unlock();
         }
     }
 

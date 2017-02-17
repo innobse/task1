@@ -1,6 +1,7 @@
 package com.innobse.task1.test;
 
 import com.innobse.task1.StatData;
+import com.innobse.task1.StatData2;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import static com.innobse.task1.Main.data;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -20,6 +22,7 @@ class StatDataTest {
     @BeforeEach
     void setUp() {
         try {
+            data = new StatData();
             c = Class.forName("com.innobse.task1.StatData");
         } catch (ClassNotFoundException e) {
             fail(e.getMessage());
@@ -29,7 +32,7 @@ class StatDataTest {
 
     @AfterEach
     void tearDown() {
-        StatData.eraseAll();
+        data.eraseAll();
     }
 
     @Test
@@ -44,13 +47,13 @@ class StatDataTest {
             size.setAccessible(true);
             for (int i = 0; i < COUNT_UPDATE; i++) {
                 String str = "string" + i;
-                update.invoke(StatData.class, str);
-                assertTrue((Integer) size.invoke(StatData.class) == i + 1);
+                update.invoke(data, str);
+                assertTrue((Integer) size.invoke(data) == i + 1);
             }
             for (int i = 0; i < COUNT_UPDATE; i++) {
                 String str = "string" + i;
-                update.invoke(StatData.class, str);
-                assertTrue((Integer) size.invoke(StatData.class) == COUNT_UPDATE);
+                update.invoke(data, str);
+                assertTrue((Integer) size.invoke(data) == COUNT_UPDATE);
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             fail(e.getMessage());

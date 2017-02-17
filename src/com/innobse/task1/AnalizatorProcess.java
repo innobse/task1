@@ -1,6 +1,6 @@
 package com.innobse.task1;
 
-
+import static com.innobse.task1.Main.ERROR;
 import java.util.ArrayList;
 
 /**
@@ -22,7 +22,6 @@ public class AnalizatorProcess extends Thread {
 
     AnalizatorProcess(String resource){
         this.resource = resource;
-        start();
     }
 
 
@@ -33,9 +32,9 @@ public class AnalizatorProcess extends Thread {
 
     @Override
     public void run(){
-        if (Parser.analize(resource) != 0){
-            Main.isCancel = true;
+        if (Parser.analize(resource) == ERROR){
             Main.getCurrentDisplay().stop();
+            Main.isCancel = true;
             Main.getCurrentDisplay().printErr("One file have incorrect symbols! The program will be closed.");
         }
     }

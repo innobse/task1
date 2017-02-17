@@ -1,6 +1,6 @@
 package com.innobse.task1;
 
-import static com.innobse.task1.Main.isCancel;
+import static com.innobse.task1.Main.*;
 import com.innobse.task1.Exceptions.GetStreamException;
 import org.apache.log4j.Logger;
 import java.io.*;
@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  */
 
 public class Parser {
-    static final Logger logger = Logger.getLogger(Parser.class);
+    private static final Logger logger = Logger.getLogger(Parser.class);
     private static Pattern invalidSymbols = Pattern.compile("[^0-9а-яА-ЯЁё\\.\\?\"\',:!;()\\-\\s]");
     private static Pattern word = Pattern.compile("^[А-Яа-яЁё]+\\-{0,1}[а-яё]*$");
     private static volatile boolean run = true;
@@ -33,18 +33,18 @@ public class Parser {
                     String str = "Incorrect symbols in file: " + resource + "\nIn line: \'" + line + "\'";
                     logger.error(str);
                     Main.getCurrentDisplay().printErr(str);
-                    return -1;
+                    return ERROR;
                 }
                 for (String tempString : line.split("[^А-Яа-я\\-]")) {
-                    if (word.matcher(tempString).matches()) StatData.update(tempString);
+                    if (word.matcher(tempString).matches()) data.update(tempString);
                 }
             }
             if (!isCancel) Main.getCurrentDisplay().end(resource);
         } catch (IOException | GetStreamException e) {
             logger.error("Ошибка парсинга файла", e);
             Main.getCurrentDisplay().printErr(e);
-            return -1;
+            return ERROR;
         }
-        return 0;
+        return COMPLETE;
     }
 }

@@ -1,6 +1,7 @@
 package com.innobse.task1;
 
 import java.util.concurrent.ConcurrentHashMap;
+import static com.innobse.task1.Main.data;
 
 /**
  * Print helper class. Print information to some output stream
@@ -21,7 +22,7 @@ class Display {
     void printStat(){
         if (!canPrint) return;
         System.out.println("===================================================================");
-        for(ConcurrentHashMap.Entry entry : StatData.getEntries()){
+        for(ConcurrentHashMap.Entry entry : data.getEntries()){
             System.out.println(entry.getKey() + "        " + entry.getValue());
         }
         System.out.println("===================================================================\n\n");
@@ -54,7 +55,7 @@ class Display {
      */
 
     void end(String res){
-        System.out.println("Все слова в файле: " + res + " посчитаны!");
+        if (canPrint) System.out.println("Все слова в файле: " + res + " посчитаны!");
     }
 
 
