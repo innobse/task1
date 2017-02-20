@@ -4,6 +4,12 @@ import static com.innobse.task1.Main.*;
 import com.innobse.task1.Exceptions.GetStreamException;
 import org.apache.log4j.Logger;
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.util.Arrays;
+import java.util.concurrent.Future;
+import java.util.concurrent.RecursiveAction;
 import java.util.regex.Pattern;
 
 /**
@@ -29,15 +35,7 @@ public class Parser {
         try(BufferedReader br = new BufferedReader(Streamer.getStream(resource))) {
             String line;
             while (((line = br.readLine()) != null) && !isCancel) {
-                if (invalidSymbols.matcher(line).find()) {
-                    String str = "Incorrect symbols in file: " + resource + "\nIn line: \'" + line + "\'";
-                    logger.error(str);
-                    Main.getCurrentDisplay().printErr(str);
-                    return ERROR;
-                }
-                for (String tempString : line.split("[^А-Яа-я\\-]")) {
-                    if (word.matcher(tempString).matches()) data.update(tempString);
-                }
+                addWordsFromString(resource, line);
             }
             if (!isCancel) Main.getCurrentDisplay().end(resource);
         } catch (IOException | GetStreamException e) {
@@ -45,6 +43,55 @@ public class Parser {
             Main.getCurrentDisplay().printErr(e);
             return ERROR;
         }
+        return COMPLETE;
+    }
+
+    public static int getPartFile(String filePath, int part, int capacity, byte[] file) {
+        AsynchronousFileChannel channel = null;
+        try {
+            channel = Streamer.getChannel(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        }
+        ByteBuffer buffer = ByteBuffer.allocate(capacity);
+        Future future = channel.read(buffer, part * capacity);
+        while (!future.isDone());
+        ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
+
+        bais.read(file, capacity * part, capacity);
+
+        cdlN.countDown();
+        try {
+            cdlN.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(file)));
+        try {
+            synchronized (br){
+                String line = br.readLine();
+                if (line != null) addWordsFromString(filePath, line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return COMPLETE;
+    }
+
+    private static int addWordsFromString(String resource, String line){
+        if (invalidSymbols.matcher(line).find()) {
+            String str = "Incorrect symbols in file: " + resource + "\nIn line: \'" + line + "\'";
+            logger.error(str);
+            Main.getCurrentDisplay().printErr(str);
+            return ERROR;
+        }
+        for (String tempString : line.split("[^А-Яа-я\\-]")) {
+            if (word.matcher(tempString).matches()) data.update(tempString);
+        }
+
         return COMPLETE;
     }
 }

@@ -6,6 +6,11 @@ import org.apache.log4j.Logger;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
+import java.nio.file.Paths;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 
@@ -34,7 +39,7 @@ public class Streamer {
         Reader result = null;
         if (url.matcher(resource).matches()){
             URL resUrl = null;
-            try{
+            try {
                 resUrl = new URL(resource);
                 result = new InputStreamReader(resUrl.openStream());
             } catch (MalformedURLException e){
@@ -53,5 +58,9 @@ public class Streamer {
             }
         }
         return result;
+    }
+
+    public static AsynchronousFileChannel getChannel(String filePath) throws IOException {
+        return AsynchronousFileChannel.open(Paths.get(filePath));
     }
 }

@@ -1,10 +1,17 @@
 package com.innobse.task1;
 
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -41,14 +48,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 
  */
 public class Main {
+    //  НЕ ТРОГАТЬ!
     static volatile boolean isCancel = false;
     static int ERROR = -1;
     static int COMPLETE = 0;
-    private static final boolean BENCHMARK = false;
+    public static final boolean REENTRANTLOCK = true;
+    public static final int DEFAULT = 0;
+    public static final int BENCHMARK = 1;
+    public static final int EXECUTORSERVICE = 2;
+    public static final int NIO2 = 3;
+
+    //  режимы (допники) модифицируемо
+    public static final int MODE = NIO2;
+    public static final int NIO2_COUNT_THREADS = 4;
+    public static final boolean MODEDATA = REENTRANTLOCK;
     private static int COUNT = 505;
+
+    //  переменные
     private static Display currentDisplay = new Display();
     private static long startTime;
     public static volatile IStatDate data;
+    public static CountDownLatch cdl;
+    public static CountDownLatch cdlN;
 
 
     /**
@@ -59,42 +80,86 @@ public class Main {
 
     public static void main(String[] args) {
 
-        if(BENCHMARK){
-            currentDisplay.stop();
-            long timeSyn = 0;long timeRee = 0;
-            long t1 = 0, t2 = 0;
-            for (; COUNT < 1000; COUNT += 50){
-                for (int i = 0; i < 50; i++) {
-                    try {
-                        t1 = startThreads(new StatData(), args[0]);
-                        t2 = startThreads(new StatData2(), args[0]);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        if(MODEDATA) data = new StatData2();
+        else new StatData();
 
-                    timeSyn += t1;
-                    timeRee += t2;
+        switch(MODE){
+            case BENCHMARK:         mainBench(args); break;
+            case EXECUTORSERVICE:   mainExecSrv(args);break;
+            case NIO2:              mainNIO2(args); break;
+            case DEFAULT:
+            default:                mainDefault(args); break;
+        }
+    }
+
+    public static void mainDefault(String[] args) {
+        for (String arg : args) {
+            new AnalizatorProcess(arg).start();
+        }
+    }
+
+    public static void mainBench(String[] args) {
+        currentDisplay.stop();
+        long timeSyn = 0;long timeRee = 0;
+        long t1 = 0, t2 = 0;
+        for (; COUNT < 1000; COUNT += 50) {
+            for (int i = 0; i < 50; i++) {
+                try {
+                    t1 = startThreads(new StatData(), "testRes/05.txt");
+                    t2 = startThreads(new StatData2(), "testRes/05.txt");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
 
-                System.out.println(COUNT + "\nSynchronized:\t\t" + timeSyn +
-                        "\nReentrantLock:\t\t" + timeRee +
-                        "\nРазница:\t\t\t" + (timeSyn - timeRee) +
-                        "\nПроценты:\t\t\t" + (timeSyn * 100 / timeRee) + "\n\n");
+                timeSyn += t1;
+                timeRee += t2;
             }
-        } else {
-//            for (String arg : args) {
-//                new AnalizatorProcess(arg).start();
-//            }
-            ExecutorService es = Executors.newFixedThreadPool(args.length);
-            for (String arg : args) {
-                es.execute(new AnalizatorProcess(arg));
-                //new AnalizatorProcess(arg).start();
-            }
-            es.shutdown();
+
+            System.out.println(COUNT + "\nSynchronized:\t\t" + timeSyn +
+                    "\nReentrantLock:\t\t" + timeRee +
+                    "\nРазница:\t\t\t" + (timeSyn - timeRee) +
+                    "\nПроценты:\t\t\t" + (timeSyn * 100 / timeRee) + "\n\n");
         }
+    }
 
+    public static void mainExecSrv(String[] args) {
+        cdl = new CountDownLatch(args.length);
+        ExecutorService es = Executors.newFixedThreadPool(args.length);
+        for (String arg : args) {
+            es.execute(new AnalizatorProcess(arg));
+        }
+        try{
+            cdl.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("END SUB");
+        es.shutdown();
+    }
 
+    public static void mainNIO2(String[] args) {
+        String target = "testRes/06.txt";//args[0];
+        File file = new File(target);
+        long size = 0;
+        if (file.exists()) size = file.length();
+        long offset = size / NIO2_COUNT_THREADS + ((size % NIO2_COUNT_THREADS == 0) ? 0 : 1);
+        final int capacity = (int) offset;
 
+        cdl = new CountDownLatch(NIO2_COUNT_THREADS);
+        cdlN = new CountDownLatch(NIO2_COUNT_THREADS);
+        ExecutorService es = Executors.newFixedThreadPool(NIO2_COUNT_THREADS);
+        byte[] tmp = new byte[(int) (NIO2_COUNT_THREADS * capacity)];
+        for (int i = 0; i < NIO2_COUNT_THREADS; i++) {
+            es.execute(new AnalizatorProcess(target, i, capacity, tmp));
+        }
+        try{
+            cdl.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        currentDisplay.printStat();
+        System.out.println("END SUB");
+        es.shutdown();
     }
 
     private static long startThreads(IStatDate data, String arg) throws InterruptedException {
@@ -102,7 +167,7 @@ public class Main {
         Thread[] ts = new Thread[COUNT];
         startTime = System.currentTimeMillis();
         for (int i = 0; i < COUNT; i++) {
-            ts[i] = new AnalizatorProcess("testRes/04.txt");
+            ts[i] = new AnalizatorProcess(arg);
             ts[i].start();
         }
         for (Thread t : ts) {
