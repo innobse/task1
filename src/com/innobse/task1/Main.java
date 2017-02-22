@@ -11,6 +11,7 @@ import java.nio.channels.FileLock;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -149,16 +150,18 @@ public class Main {
         cdlN = new CountDownLatch(NIO2_COUNT_THREADS);
         ExecutorService es = Executors.newFixedThreadPool(NIO2_COUNT_THREADS);
         byte[] tmp = new byte[(int) (NIO2_COUNT_THREADS * capacity)];
+        ArrayList<Callable<Integer>> tasks = new ArrayList<>(NIO2_COUNT_THREADS);
         for (int i = 0; i < NIO2_COUNT_THREADS; i++) {
-            es.execute(new AnalizatorProcess(target, i, capacity, tmp));
+            tasks.add(new AnalizatorProcess(target, i, capacity, tmp));
         }
         try{
+            es.invokeAll(tasks);
             cdl.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         currentDisplay.printStat();
-        System.out.println("END SUB");
+        System.out.println("КОНЕЦ ИСПОЛНЕНИЯ ПРОГРАММЫ");
         es.shutdown();
     }
 
