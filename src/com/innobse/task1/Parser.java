@@ -57,6 +57,7 @@ public class Parser {
         ByteBuffer buffer = ByteBuffer.allocate(capacity);
         Future future = channel.read(buffer, part * capacity);
         while (!future.isDone());
+
         ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
 
         bais.read(file, capacity * part, capacity);
@@ -68,16 +69,33 @@ public class Parser {
             e.printStackTrace();
         }
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(file)));
-        try {
-            synchronized (br){
-                String line = br.readLine();
-                if (line != null) addWordsFromString(filePath, line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        CharBuffer cb = ByteBuffer.wrap(file, part*capacity, capacity-capacity%2).asCharBuffer();
+//        char[] chars = cb.array();
+//        int start = (part == 0) ? 0 : -1;
+//
+//        for (int i = 0; i < chars.length; i++) {
+//            if (chars[i] == 10){
+//                if (start != -1){
+//                    addWordsFromString(filePath, new String(chars, start, i-start));
+//                }
+//                start = i + 1;
+//            }
+//        }
 
+        if (part == 0) {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(file)));
+            try {
+                //synchronized (br) {
+                    String line;
+                    while((line = br.readLine()) != null) {
+                        if (addWordsFromString(filePath, line) == ERROR) return ERROR;
+                    }
+
+                //}
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         return COMPLETE;
     }
 
