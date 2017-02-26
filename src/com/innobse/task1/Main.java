@@ -143,17 +143,24 @@ public class Main {
         File file = new File(target);
         long size = 0;
         if (file.exists()) size = file.length();
-        long offset = size / NIO2_COUNT_THREADS + ((size % NIO2_COUNT_THREADS == 0) ? 0 : 1);
+        long offset = size / NIO2_COUNT_THREADS;
         final int capacity = (int) offset;
 
         cdl = new CountDownLatch(NIO2_COUNT_THREADS);
         cdlN = new CountDownLatch(NIO2_COUNT_THREADS);
         ExecutorService es = Executors.newFixedThreadPool(NIO2_COUNT_THREADS);
-        byte[] tmp = new byte[(int) (NIO2_COUNT_THREADS * capacity)];
+        //byte[] tmp = new byte[(int) file.length()];
+        byte[][] tmp = new byte[NIO2_COUNT_THREADS][];
         ArrayList<Callable<Integer>> tasks = new ArrayList<>(NIO2_COUNT_THREADS);
-        for (int i = 0; i < NIO2_COUNT_THREADS; i++) {
-            tasks.add(new AnalizatorProcess(target, i, capacity, tmp));
+        for (int i = 0; i < NIO2_COUNT_THREADS-1; i++) {
+            System.out.println(i + "\t" + (i * capacity) + "\t" + capacity);
+            tasks.add(new AnalizatorProcess(target, i, i * capacity, capacity, tmp));
         }
+        int newCapacity = (int) (file.length() - (NIO2_COUNT_THREADS-1) * capacity);
+        long newOffset = file.length() - newCapacity;
+        System.out.println("last\t" + newOffset + "\t" + newCapacity);
+        System.out.println(file.length());
+        tasks.add(new AnalizatorProcess(target, NIO2_COUNT_THREADS-1, newOffset, newCapacity, tmp));
         try{
             es.invokeAll(tasks);
             cdl.await();

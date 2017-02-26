@@ -2,7 +2,10 @@ package com.innobse.task1;
 
 import static com.innobse.task1.Main.*;
 import com.innobse.task1.Exceptions.GetStreamException;
+import com.sun.org.apache.regexp.internal.CharacterArrayCharacterIterator;
 import org.apache.log4j.Logger;
+import sun.text.normalizer.UTF16;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -46,7 +49,7 @@ public class Parser {
         return COMPLETE;
     }
 
-    public static int getPartFile(String filePath, int part, int capacity, byte[] file) {
+    public static int getPartFile(String filePath, int num, long offset, int capacity, byte[][] common) {
         AsynchronousFileChannel channel = null;
         try {
             channel = Streamer.getChannel(filePath);
@@ -55,47 +58,64 @@ public class Parser {
             return ERROR;
         }
         ByteBuffer buffer = ByteBuffer.allocate(capacity);
-        Future future = channel.read(buffer, part * capacity);
+        Future future = channel.read(buffer, offset);
         while (!future.isDone());
 
-        ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
+        byte[] partOfFile = buffer.array();
 
-        bais.read(file, capacity * part, capacity);
-
-        cdlN.countDown();
-        try {
-            cdlN.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-//        CharBuffer cb = ByteBuffer.wrap(file, part*capacity, capacity-capacity%2).asCharBuffer();
-//        char[] chars = cb.array();
-//        int start = (part == 0) ? 0 : -1;
-//
-//        for (int i = 0; i < chars.length; i++) {
-//            if (chars[i] == 10){
-//                if (start != -1){
-//                    addWordsFromString(filePath, new String(chars, start, i-start));
-//                }
-//                start = i + 1;
-//            }
+//        cdlN.countDown();
+//        try {
+//            cdlN.await();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
 //        }
 
-        if (part == 0) {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(file)));
-            try {
-                //synchronized (br) {
-                    String line;
-                    while((line = br.readLine()) != null) {
-                        if (addWordsFromString(filePath, line) == ERROR) return ERROR;
-                    }
 
-                //}
-            } catch (IOException e) {
-                e.printStackTrace();
+        //  ищем начало целой строки
+        int start = 0;
+        if (num != 0){
+            while (partOfFile[start] != 10){
+                start++;
+            }
+            start++;
+        }
+
+        //  сохраняем порваный кусок
+        if(start != 0){
+            common[num-1] = Arrays.copyOfRange(partOfFile, 0, start);
+        }
+
+        //  анализируем целые строки
+        int i = start;
+        for (; i < capacity; i++) {
+            if (partOfFile[i] == 10) {
+                if (addWordsFromString(filePath, new String(partOfFile, start, i-start)) == ERROR) return ERROR;
+                start = i + 1;
             }
         }
+
+        //  здесь поток, который отвечает за конец файла - анализирует конец, остальные собирают порваные строки
+        if(num == common.length-1){
+            if (addWordsFromString(filePath, new String(partOfFile, start, i-start)) == ERROR) return ERROR;
+        } else{
+            while (common[num] == null){
+                try {
+                    common[num].wait(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if(start != capacity){
+                int dif = capacity-start;
+                byte[] temp = new byte[dif+common[num].length];
+                System.arraycopy(partOfFile, start, temp, 0, dif);
+                System.arraycopy(common[num], 0, temp, dif, common[num].length);
+                logger.info("Собрано: " + new String(temp));
+                if (addWordsFromString(filePath, new String(temp)) == ERROR) return ERROR;
+            }
+        }
+
         return COMPLETE;
     }
 

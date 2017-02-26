@@ -19,8 +19,9 @@ import java.util.concurrent.Callable;
 public class AnalizatorProcess extends Thread implements Callable<Integer> {
     private String resource;
     private final int num;
+    private final long offset;
     private final int capacityBuffer;
-    private static byte[] file;
+    private static byte[][] common;
 
 
     /**
@@ -30,14 +31,15 @@ public class AnalizatorProcess extends Thread implements Callable<Integer> {
      */
 
     AnalizatorProcess(String resource){
-        this(resource, 0, 0, null);
+        this(resource, 0, 0, 0, null);
     }
 
-    AnalizatorProcess(String resource, int num, int capacityBuffer, byte[] file){
+    AnalizatorProcess(String resource, int num, long offset, int capacity, byte[][] common){
         this.resource = resource;
         this.num = num;
-        this.capacityBuffer = capacityBuffer;
-        this.file = file;
+        this.offset = offset;
+        this.capacityBuffer = capacity;
+        this.common = common;
     }
 
 
@@ -55,7 +57,7 @@ public class AnalizatorProcess extends Thread implements Callable<Integer> {
     @Override
     public Integer call() {
         int result = COMPLETE;
-        if ((MODE == NIO2) ? Parser.getPartFile(resource, num, capacityBuffer, file) == ERROR : Parser.analize(resource) == ERROR){
+        if ((MODE == NIO2) ? Parser.getPartFile(resource, num, offset, capacityBuffer, common) == ERROR : Parser.analize(resource) == ERROR){
             Main.getCurrentDisplay().stop();
             Main.isCancel = true;
             Main.getCurrentDisplay().printErr("One file have incorrect symbols! The program will be closed.");
